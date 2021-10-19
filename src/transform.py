@@ -3,7 +3,35 @@ import math
 import numpy as np
 from numba import njit
 
-from src.utils import transform_255
+from src.utils import histogram_rgb, transform_255
+
+@njit
+def eq_histogram_rgb(im: np.ndarray) -> np.ndarray:
+    r_hist, g_hist, b_hist = histogram_rgb(im)
+    area = im.shape[0] * im.shape[1]
+    eq_r_hist = np.zeros(256)
+    eq_g_hist = np.zeros(256)
+    eq_b_hist = np.zeros(256)
+    tmp_r = 0
+    tmp_g = 0
+    tmp_b = 0
+    for i in range(256):
+        tmp_r += 255 * (r_hist[i] / area)
+        tmp_g += 255 * (g_hist[i] / area)
+        tmp_b += 255 * (b_hist[i] / area)
+        eq_r_hist[i] = math.floor(tmp_r)
+        eq_g_hist[i] = math.floor(tmp_g)
+        eq_b_hist[i] = math.floor(tmp_b)
+
+    im_eq = np.empty(im.shape)
+    for y in range(im.shape[0]):
+        for x in range(im.shape[1]):
+            im_eq[y][x][0] = eq_r_hist[im[y][x][0]]
+            im_eq[y][x][1] = eq_g_hist[im[y][x][1]]
+            im_eq[y][x][2] = eq_b_hist[im[y][x][2]]
+
+    return im_eq.astype(np.uint8)
+
 
 def eq_histogram(img: np.ndarray) -> np.ndarray:
     hist = np.zeros(256)

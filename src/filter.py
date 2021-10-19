@@ -106,3 +106,24 @@ def suavizar_box(img: np.ndarray, kernel_size: tuple[int, int]) -> np.ndarray:
                     pixel += img[vy][vx] if 0 <= vy < h and 0 <= vx < w else 0
             img_new[y][x] = pixel * c
     return img_new
+
+
+def contra_harm_mean(
+    im: np.ndarray, kernel_size: tuple[int, int], q: int = 1
+) -> np.ndarray:
+    im_new = np.empty(im.shape, dtype=np.uint8)
+    h, w = im.shape[:2]
+    ky = math.floor(kernel_size[0]/2)
+    kx = math.floor(kernel_size[1]/2)
+    for y in range(h):
+        for x in range(w):
+            tmp1 = 0
+            tmp2 = 0
+            for i in range(-ky, ky + 1):
+                vy = y + i
+                for j in range(-kx, kx + 1):
+                    vx = x + j
+                    tmp1 += math.pow(im[vy][vx]+1 if 0 <= vy < h and 0 <= vx < w else 1, q+1)
+                    tmp2 += math.pow(im[vy][vx]+1 if 0 <= vy < h and 0 <= vx < w else 1, q)
+            im_new[y][x] = tmp1 / tmp2
+    return im_new
